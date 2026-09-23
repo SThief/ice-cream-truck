@@ -759,15 +759,23 @@ const sfx = {
 };
 function engineStart() {
   const a = audio(); if (!a || engineNode) return;
-  const o = a.createOscillator(), f = a.createBiquadFilter(), v = a.createGain();
-  o.type = 'sawtooth'; o.frequency.value = 42; f.type = 'lowpass'; f.frequency.value = 280; v.gain.value = 0;
-  o.connect(f).connect(v).connect(a.destination); o.start(); engineNode = { o, v };
+  // Phone speakers play almost nothing below ~200 Hz, so the engine lives higher up:
+  // a buzzy body, a brighter layer an octave up, and a "putt-putt" beat that speeds up with the truck.
+  const o = a.createOscillator(), o2 = a.createOscillator(), f = a.createBiquadFilter(), v = a.createGain(), trem = a.createGain(), lfo = a.createOscillator(), depth = a.createGain(), g2 = a.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 90; o2.type = 'square'; o2.frequency.value = 180; g2.gain.value = .35;
+  f.type = 'lowpass'; f.frequency.value = 900; f.Q.value = 3;
+  lfo.frequency.value = 8; depth.gain.value = .45; trem.gain.value = .55;
+  lfo.connect(depth).connect(trem.gain);
+  o.connect(f); o2.connect(g2).connect(f); f.connect(trem).connect(v).connect(a.destination);
+  v.gain.value = 0; o.start(); o2.start(); lfo.start();
+  engineNode = { o, o2, f, v, lfo };
 }
 function engineSet(speed) {
   if (!engineNode || !ac) return;
-  const t = ac.currentTime, s = Math.min(1, Math.abs(speed) / 7);
-  engineNode.o.frequency.setTargetAtTime(40 + s * 45, t, .1);
-  engineNode.v.gain.setTargetAtTime(muted ? 0 : .035 + s * .06, t, .1);
+  const t = ac.currentTime, s = Math.min(1, Math.abs(speed) / 7), n = engineNode;
+  n.o.frequency.setTargetAtTime(90 + s * 110, t, .12); n.o2.frequency.setTargetAtTime(180 + s * 220, t, .12);
+  n.lfo.frequency.setTargetAtTime(8 + s * 16, t, .12); n.f.frequency.setTargetAtTime(900 + s * 1600, t, .12);
+  n.v.gain.setTargetAtTime(muted ? 0 : .1 + s * .14, t, .1);
 }
 
 // English voice. Without one, the Listen level falls back to showing the words.
