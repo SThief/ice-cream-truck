@@ -47,7 +47,8 @@ button:focus-visible{outline:5px dashed var(--gold);outline-offset:5px;border-ra
 #hud .n small{font-size:.5em;color:var(--muted)}
 #hud.bump{animation:bump .4s}
 @keyframes bump{40%{scale:1.1}}
-#mute{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:5;width:clamp(48px,9vh,64px);aspect-ratio:1;font-size:clamp(20px,3.6vh,28px)}
+#mute,#home{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:5;width:clamp(48px,9vh,64px);aspect-ratio:1;font-size:clamp(20px,3.6vh,28px)}
+#home{top:calc(env(safe-area-inset-top,0px) + 26px + clamp(48px,9vh,64px))}
 
 /* order bubble */
 #bubble{position:fixed;left:0;top:0;z-index:4;transform-origin:50% 100%;padding:14px 20px 14px;min-width:150px;max-width:min(360px,80vw);box-sizing:border-box;
@@ -231,9 +232,10 @@ button:focus-visible{outline:5px dashed var(--gold);outline-offset:5px;border-ra
 <canvas id="c"></canvas>
 <div id="hud" class="card">
   <div id="jar"></div>
-  <div><span class="candy pink day" id="day">Day 1 · Count</span><div class="n lil"><span id="money">$0</span><small> / $20</small></div></div>
+  <div><span class="candy pink day" id="day">Day 1 · Count</span><div class="n lil"><span id="money">$0</span><small id="goalN"> / $12</small></div></div>
 </div>
 <button id="mute" class="candy" aria-label="Sound on / off">🔊</button>
+<button id="home" class="candy" aria-label="Home">🏠</button>
 <div id="bubble" class="card" aria-live="polite"></div>
 <div id="want" hidden>🍦</div>
 <div id="tubs" class="away"></div>
@@ -827,17 +829,21 @@ const sfx = {
 };
 function engineStart() {
   const a = audio(); if (!a || engineNode) return;
-  // The low hum the King chose (40-90 Hz). A phone speaker cannot play that note itself, so the filter
-  // stays open enough to pass its overtones: the ear rebuilds the low pitch from them.
-  const o = a.createOscillator(), f = a.createBiquadFilter(), v = a.createGain();
-  o.type = 'sawtooth'; o.frequency.value = 42; f.type = 'lowpass'; f.frequency.value = 700; f.Q.value = 1.2; v.gain.value = 0;
-  o.connect(f).connect(v).connect(a.destination); o.start(); engineNode = { o, f, v };
+  // "Soft brrrm", the King's pick from the engine booth: a gentle FM buzz with a slow flutter,
+  // the noise a child makes pushing a toy car. Level-matched to the low hum he approved before.
+  const O = (t, f) => { const o = a.createOscillator(); o.type = t; o.frequency.value = f; return o; }, G = v => { const g = a.createGain(); g.gain.value = v; return g; };
+  const car = O('sine', 85), mod = O('sine', 42), idx = G(50), flut = O('sine', 11), fd = G(.22), amp = G(.75), v = G(0), lp = a.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 1300; lp.Q.value = .7;
+  mod.connect(idx).connect(car.frequency); flut.connect(fd).connect(amp.gain);
+  car.connect(amp).connect(lp).connect(v).connect(a.destination); car.start(); mod.start(); flut.start();
+  engineNode = { car, mod, idx, flut, v };
 }
 function engineSet(speed) {
   if (!engineNode || !ac) return;
-  const t = ac.currentTime, s = Math.min(1, Math.abs(speed) / 7), n = engineNode;
-  n.o.frequency.setTargetAtTime(40 + s * 48, t, .12); n.f.frequency.setTargetAtTime(700 + s * 600, t, .12);
-  n.v.gain.setTargetAtTime(muted ? 0 : .07 + s * .09, t, .1);
+  const t = ac.currentTime, s = Math.min(1, Math.abs(speed) / 7), n = engineNode, to = (p, x) => p.setTargetAtTime(x, t, .1);
+  to(n.car.frequency, 85 + s * 150); to(n.mod.frequency, 42 + s * 75); to(n.idx.gain, 50 + s * 70); to(n.flut.frequency, 11 + s * 9);
+  // it gets brighter, so louder to the ear, as it speeds up: the gain comes down to compensate
+  to(n.v.gain, muted ? 0 : .19 - s * .09);
 }
 
 // English voice. Without one, the Listen level falls back to showing the words.
@@ -883,11 +889,11 @@ function say(text) {
 // ---------- days: one shop, three money lessons ----------
 const PRICE1 = { dau: 1, cam: 1, nho: 1, choc: 1, chuoi: 1 }, PRICE2 = { dau: 1, cam: 1, nho: 2, choc: 2, chuoi: 1 };
 const DAYS = [
-  { name: 'Count', say: 'Count the money', mode: 'Look', flavors: ['dau', 'cam', 'nho'], max: 2, queue: [1, 2], price: PRICE1, cap: 9 },
-  { name: 'Add', say: 'Add it up', mode: 'Read', flavors: KEYS, max: 3, queue: [2, 3], price: PRICE2, cap: 9 },
-  { name: 'Change', say: 'Give the change', mode: 'Listen', flavors: KEYS, max: 3, queue: [2, 4], price: PRICE2, cap: 4 },
+  { name: 'Count', say: 'Count the money', mode: 'Look', flavors: ['dau', 'cam', 'nho'], max: 2, queue: [1, 2], price: PRICE1, cap: 9, goal: 12 },
+  { name: 'Add', say: 'Add it up', mode: 'Read', flavors: KEYS, max: 3, queue: [2, 3], price: PRICE2, cap: 9, goal: 20 },
+  { name: 'Change', say: 'Give the change', mode: 'Listen', flavors: KEYS, max: 3, queue: [2, 4], price: PRICE2, cap: 4, goal: 20 },
 ];
-const GOAL = 20, NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six'];
+const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six'];
 const HELLO = ['Hello!', 'Hi!', 'Excuse me!', 'Hi there!'];
 const ITEMS = [
   { id: 'song', icon: '🎵', name: 'New song', cost: 5 },
@@ -917,11 +923,11 @@ function jarSVG(fill) {
   const coins = spots.map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="3.4"/>`).join('');
   return `<svg viewBox="0 0 60 80"><rect x="16" y="2" width="28" height="9" rx="3" fill="#ff5fa2"/><path d="M12 12h36c4 0 6 3 6 7v50c0 6-5 9-10 9H16c-5 0-10-3-10-9V19c0-4 2-7 6-7z" fill="#dff4ff" opacity=".85" stroke="#9fc7de" stroke-width="2"/>
     <g fill="#ffc21a" stroke="#c98700" stroke-width="1.4">${coins}</g>
-    <line x1="8" x2="52" y1="26" y2="26" stroke="#ff5fa2" stroke-width="2.4" stroke-dasharray="4 3"/><rect x="38" y="19" width="19" height="9" rx="4" fill="#ff5fa2"/><text x="47.5" y="26" font-size="7" text-anchor="middle" fill="#fff" font-weight="800">$${GOAL}</text>
+    <line x1="8" x2="52" y1="26" y2="26" stroke="#ff5fa2" stroke-width="2.4" stroke-dasharray="4 3"/><rect x="38" y="19" width="19" height="9" rx="4" fill="#ff5fa2"/><text x="47.5" y="26" font-size="7" text-anchor="middle" fill="#fff" font-weight="800">$${dy().goal}</text>
     <path d="M14 20v44" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg>`;
 }
 function drawHud() {
-  $('#jar').innerHTML = jarSVG(S.money / GOAL);
+  $('#jar').innerHTML = jarSVG(S.money / dy().goal); $('#goalN').textContent = ' / $' + dy().goal;
   $('#money').textContent = '$' + S.money;
   $('#day').textContent = `Day ${S.day + 1} · ${dy().name}`;
 }
@@ -1276,7 +1282,7 @@ async function runStop(st) {
     await walkTo(c.k, tx + 3.75, 2.35); await turnTo(c.k, -.95);
     await serveOne(c);
     st.queue.shift(); leave(c);
-    full = S.money >= GOAL;
+    full = S.money >= dy().goal;
   }
   if (full) { st.queue.forEach(leave); st.queue = []; }
   st.state = 'done';
@@ -1699,8 +1705,8 @@ async function endDay() {
   S.learned = [...new Set([...S.learned, ...fresh])]; store.set('learned', S.learned);
   $('#stickers').innerHTML = words.map(([pic, w, key]) => `<button class="sticker ${fresh.includes(w) ? 'new' : ''}" data-w="${w}" data-k="${key}">${pic}<span>${w}${fresh.includes(w) ? ' ✨' : ''}</span></button>`).join('');
   $('#stickers').querySelectorAll('.sticker').forEach(b => b.addEventListener('click', () => speak(b.dataset.k, b.dataset.w)));
-  $('#endJar').innerHTML = jarSVG(S.money / GOAL);
-  $('#endSub').textContent = `${S.happy} happy customers · goal $${GOAL} ✓`;
+  $('#endJar').innerHTML = jarSVG(S.money / dy().goal);
+  $('#endSub').textContent = `${S.happy} happy customers · goal $${dy().goal} ✓`;
   $('#endMoney').textContent = '$0';
   $('#next').hidden = S.day >= DAYS.length - 1;
   drawShop();
@@ -1744,8 +1750,23 @@ $('#mute').addEventListener('click', () => {
 // Before play the street is empty; the truck drives in, then the child takes the wheel.
 // Its nose points to -x, so it has to arrive from +x to drive forwards.
 truck.position.x = 22; camX = 0; placeCamera();
+// Home stops the day where it is. Savings, stickers, drawings and the day number are already saved;
+// only the money in today's jar starts over when the child plays again.
+function goHome() {
+  if (S.mode === 'intro') return;
+  S.mode = 'home'; input.fwd = input.back = false; v = 0; engineSet(0); stopVoice(); clearTimeout(hintT);
+  bubble.classList.remove('show'); ['#tubs', '#till', '#drive'].forEach(q => $(q).classList.add('away'));
+  $('#tip').hidden = true; $('#want').hidden = true; stopMark.visible = false; $('#end').hidden = true;
+  custs.slice().forEach(drop); stops.length = 0; S.cust = null;
+  S.scoops.forEach(sc => sc.removeFromParent()); S.scoops = []; stack.scale.setScalar(1);
+  awningPivot.rotation.x = -1.35; easel.scale.setScalar(.001);
+  drawStart(); $('#start').hidden = false;
+}
+$('#home').addEventListener('click', goHome);
 $('#play').addEventListener('click', async () => {
   audio(); findVoice(); $('#start').hidden = true; engineStart();
+  if (S.started) return newDay(S.day);
+  S.started = true;
   spawnStop(-12); spawnStop(-32);
   await tween(3000, (e, k) => { truck.position.x = 22 - 22 * e; engineSet(7 * (1 - k)); }, ease.out);
   v = 0; engineSet(0); sfx.squeak(); sfx.honk();
