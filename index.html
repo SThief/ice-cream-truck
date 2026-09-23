@@ -579,6 +579,7 @@ const trees = [];
 }
 
 // flower pots along the near sidewalk, so driving feels like moving
+const pots = [];
 {
   const potGeo = new T.CylinderGeometry(.32, .24, .45, 14), bushGeo = new T.SphereGeometry(.34, 14, 10), flowerGeo = new T.SphereGeometry(.09, 8, 6);
   const FLOW = [0xff5f8f, 0xffd23f, 0xffffff, 0x8a5cf0], potMat = L(0xffffff, { vertexColors: true });
@@ -586,7 +587,7 @@ const trees = [];
     ...[0, 1, 2, 3].map(k => [flowerGeo, mx(Math.cos(k * 1.6) * .25, .82, Math.sin(k * 1.6) * .25), FLOW[(k + r) % 4]])]));
   for (let x = STREET_MIN + 8; x < STREET_MAX; x += 17) {
     const g = new T.Group(); g.position.set(x, .18, 4.5); world.add(g);
-    mesh(potShapes[Math.abs(x) % 4], potMat, g);
+    mesh(potShapes[Math.abs(x) % 4], potMat, g); pots.push(g);
   }
 }
 
@@ -1932,12 +1933,15 @@ function drawExtras() { document.querySelectorAll('.labBtn').forEach(b => b.hidd
 // One scene is drawn, not two, and scoops come from a pool built once, so it stays smooth on a phone.
 const CATCH_SECS = 45, CATCH_Z = 3.1, RIM_Y = 1.75, STACK_STEP = .46;
 let C = null;
-const catchCone = new T.Group(); catchCone.visible = false; world.add(catchCone);
+// The game is played in a flat strip facing the camera straight on: the street runs at an angle across
+// the screen, and a cone that slid along the street went diagonally, into the distance, and was hard to steer.
+const catchRig = new T.Group(); scene.add(catchRig);
+const catchCone = new T.Group(); catchCone.visible = false; catchRig.add(catchCone);
 {
   const cone = mesh(new T.ConeGeometry(.42, 1.15, 36), M(0xffffff, { map: waffle, roughness: .7 }), catchCone, [0, -.575, 0]); cone.rotation.x = Math.PI;
   mesh(new T.TorusGeometry(.41, .07, 10, 36), M(0xf7b566, { roughness: .6 }), catchCone, [0, 0, 0]).rotation.x = Math.PI / 2;
 }
-const catchShadow = mesh(new T.CircleGeometry(.55, 24), new T.MeshBasicMaterial({ color: 0x1b2230, transparent: true, opacity: .25, depthWrite: false, alphaMap: tShadow.material.alphaMap }), world, [0, .2, CATCH_Z], false);
+const catchShadow = mesh(new T.CircleGeometry(.55, 24), new T.MeshBasicMaterial({ color: 0x1b2230, transparent: true, opacity: .25, depthWrite: false, alphaMap: tShadow.material.alphaMap }), catchRig, [0, .2, 0], false);
 catchShadow.rotation.x = -Math.PI / 2; catchShadow.visible = false;
 const scoopPool = {};
 function poolScoop(f) {
@@ -1948,10 +1952,10 @@ function poolScoop(f) {
     g = makeScoop(f); pool.push(g);
     g.children.forEach((m, i) => { if (i) m.castShadow = false; });
   }
-  world.attach(g); g.visible = true; g.scale.setScalar(1); g.rotation.set(0, Math.random() * 6, 0); g.userData.mats.forEach(m => m.opacity = 1);
+  catchRig.attach(g); g.visible = true; g.scale.setScalar(1); g.rotation.set(0, Math.random() * 6, 0); g.userData.mats.forEach(m => m.opacity = 1);
   return g;
 }
-const release = g => { g.visible = false; world.attach(g); };
+const release = g => { g.visible = false; catchRig.attach(g); };
 // Building a scoop and sending it to the GPU the first time it falls froze the game for seconds,
 // so the pool is filled and the shaders compiled ahead of time, while nothing is happening.
 function warmCatch() {
@@ -1968,8 +1972,8 @@ const catchPlane = new T.Plane(), catchHit = new T.Vector3(), catchNdc = new T.V
 function aimCone(e) {
   if (!C) return;
   catchNdc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); catchRay.setFromCamera(catchNdc, cam);
-  catchPlane.setFromNormalAndCoplanarPoint(new T.Vector3(0, 0, 1).applyQuaternion(world.quaternion), world.localToWorld(new T.Vector3(0, 0, CATCH_Z)));
-  if (catchRay.ray.intersectPlane(catchPlane, catchHit)) C.aim = T.MathUtils.clamp(world.worldToLocal(catchHit).x, C.x0 + 1.4, C.x0 + 8.2);
+  catchPlane.setFromNormalAndCoplanarPoint(new T.Vector3(0, 0, 1).applyQuaternion(catchRig.quaternion), catchRig.position);
+  if (catchRay.ray.intersectPlane(catchPlane, catchHit)) C.aim = T.MathUtils.clamp(catchRig.worldToLocal(catchHit).x, -C.half, C.half);
 }
 $('#catch').addEventListener('pointerdown', aimCone); $('#catch').addEventListener('pointermove', aimCone);
 
@@ -1980,8 +1984,11 @@ function openCatch() {
   $('#start').hidden = true; $('#end').hidden = true;
   $('#catch').hidden = false; $('#cEnd').hidden = true; document.body.classList.add('catching');
   const x0 = truck.position.x;
-  C = { from, x0, x: x0 + 4.6, aim: x0 + 4.6, vx: 0, live: [], stack: [], flush: [], score: 0, hits: 0, t: CATCH_SECS, spawn: .6, wobble: 0, on: true, target: 'dau', awning: awningPivot.rotation.x };
+  catchRig.position.copy(world.localToWorld(new T.Vector3(x0 + 4.6, 0, CATCH_Z)));
+  catchRig.rotation.set(0, Math.atan2(DIR.x, DIR.z), 0);            // square to the camera
+  C = { from, x0, half: camTall ? 2.5 : 3.4, x: 0, aim: 0, vx: 0, live: [], stack: [], flush: [], score: 0, hits: 0, t: CATCH_SECS, spawn: .6, wobble: 0, on: true, target: 'dau', awning: awningPivot.rotation.x };
   custs.forEach(c => c.k.g.visible = false); stopMark.visible = false; $('#want').hidden = true;
+  pots.forEach(p => p.visible = Math.abs(p.position.x - (x0 + 4.6)) > 12);   // a pot in front would hide the cone
   awningPivot.rotation.x = .45;
   catchCone.visible = catchShadow.visible = true;
   catchTarget(true); speak('catchgo', 'Ready? Go!');
@@ -1999,13 +2006,13 @@ function catchStep(dt) {
   // the cone glides after the finger and leans into the move
   const nx = C.x + (C.aim - C.x) * Math.min(1, dt * 14); C.vx = (nx - C.x) / Math.max(dt, 1e-3); C.x = nx;
   C.wobble = Math.max(0, C.wobble - dt);
-  catchCone.position.set(C.x, RIM_Y + Math.sin(clock * 3) * .03, CATCH_Z);
+  catchCone.position.set(C.x, RIM_Y + Math.sin(clock * 3) * .03, 0);
   catchCone.rotation.z = T.MathUtils.clamp(-C.vx * .025, -.35, .35) + Math.sin(clock * 40) * C.wobble * .5;
   catchShadow.position.x = C.x;
   if (C.on && (C.spawn -= dt) <= 0) {
     C.spawn = .95 / run;
     const f = Math.random() < .45 ? C.target : KEYS[Math.floor(Math.random() * KEYS.length)], g = poolScoop(f);
-    g.position.set(C.x0 + 1.8 + Math.random() * 6.2, 7.4, CATCH_Z);
+    g.position.set((Math.random() * 2 - 1) * (C.half - .2), 7.4, 0);
     C.live.push({ g, f, vx: 0, vy: -(1 + Math.random() * .6) * run, spin: (Math.random() - .5) * 2 });
   }
   const rim = RIM_Y + .2 + C.stack.length * STACK_STEP - .12;
@@ -2021,7 +2028,7 @@ function catchStep(dt) {
       if (s.f === C.target) {
         catchCone.attach(s.g); s.g.position.set(0, .2 + C.stack.length * STACK_STEP, 0); s.g.rotation.set(0, s.g.rotation.y, 0);
         C.stack.push({ g: s.g, t: 0 }); s.gone = true; C.score++; C.hits++;
-        sfx.plop(); floatAt(toScreen(world.localToWorld(new T.Vector3(C.x, rim + .8, CATCH_Z))), '+1', 1, 'money');
+        sfx.plop(); floatAt(toScreen(catchRig.localToWorld(new T.Vector3(C.x, rim + .8, 0))), '+1', 1, 'money');
         if (C.hits % 5 === 0) catchTarget(false);
         if (C.stack.length > 4) flushStack();
       } else { s.bounced = true; s.vy = 3.2; s.vx = (p.x < C.x ? -1 : 1) * 2.4; C.wobble = .4; sfx.boing(); }
@@ -2042,8 +2049,8 @@ function catchStep(dt) {
   if (C.on) { $('#cScore').textContent = `⭐ ${C.score}`; $('#cTime').textContent = `⏱ ${Math.max(0, Math.ceil(C.t))}`; if (C.t <= 0) endCatch(); }
 }
 function flushStack() {
-  const to = new T.Vector3(truck.position.x + 1.3, 1.9, .9);
-  C.stack.forEach((it, i) => { world.attach(it.g); C.flush.push({ g: it.g, t: -i * .08, from: it.g.position.clone(), to }); });
+  const to = catchRig.worldToLocal(world.localToWorld(new T.Vector3(truck.position.x + 1.3, 1.9, .9)));
+  C.stack.forEach((it, i) => { catchRig.attach(it.g); C.flush.push({ g: it.g, t: -i * .08, from: it.g.position.clone(), to }); });
   C.stack = []; sfx.coin();
 }
 function endCatch() {
@@ -2061,7 +2068,7 @@ function closeCatch(silent) {
   if (!C) return;
   [...C.live.map(s => s.g), ...C.stack.map(s => s.g), ...C.flush.map(s => s.g)].forEach(release);
   catchCone.visible = catchShadow.visible = false; awningPivot.rotation.x = C.awning;
-  custs.forEach(c => c.k.g.visible = true);
+  custs.forEach(c => c.k.g.visible = true); pots.forEach(p => p.visible = true);
   const from = C.from; C = null;
   $('#catch').hidden = true; document.body.classList.remove('catching');
   if (silent) return;
