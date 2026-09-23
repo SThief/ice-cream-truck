@@ -187,6 +187,43 @@ button:focus-visible{outline:5px dashed var(--gold);outline-offset:5px;border-ra
 .item.own::after{content:"✓";position:absolute;right:-6px;top:-8px;width:32px;height:32px;border-radius:50%;background:var(--mint);color:#fff;display:grid;place-items:center;font-size:18px;box-shadow:0 3px 0 var(--mint-d)}
 .btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .btns .candy{font-size:clamp(20px,3.4vh,28px);padding:12px 30px 8px}
+/* grown-ups and drawings panels */
+.minirow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.candy.small{font-size:clamp(14px,2.3vh,18px);padding:7px 16px 4px}
+.panel{position:fixed;inset:0;z-index:12;overflow-y:auto;padding-inline:16px;padding-block:calc(env(safe-area-inset-top,0px) + 16px) 28px;box-sizing:border-box;background:rgba(20,26,51,.82);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.panel .sheet{max-width:720px;margin:0 auto;padding:20px 20px 22px;display:flex;flex-direction:column;gap:14px}
+.panel h2{margin:0;font-family:"Lilita One",sans-serif;font-weight:400;font-size:clamp(24px,4vh,32px);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel h3{margin:4px 0 0;font-family:"Lilita One",sans-serif;font-weight:400;font-size:19px}
+.panel .x{width:44px;height:44px;font-size:20px;padding:0}
+.panel p{margin:0;color:var(--muted);font-weight:600;line-height:1.35}
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.sum{background:#fff;border-radius:16px;padding:10px 14px 8px;box-shadow:0 4px 0 var(--paper-e)}
+.sum b{display:block;font-family:"Lilita One",sans-serif;font-weight:400;font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.sum span{font-size:13px;font-weight:800;color:var(--muted)}
+.prow{display:grid;grid-template-columns:minmax(110px,150px) 1fr 44px;gap:10px;align-items:center;font-weight:800}
+.prow .pbar{height:14px;border-radius:999px;background:#ece2d2;overflow:hidden}
+.prow .pbar i{display:block;height:100%;border-radius:999px;background:var(--mint)}
+.prow .pbar i.mid{background:var(--gold)}.prow .pbar i.low{background:var(--pink)}
+.prow .pn{text-align:right;font-variant-numeric:tabular-nums}
+.prow .pnote{grid-column:2/4;margin-top:-6px;font-size:13px;color:var(--muted)}
+.practise{background:#fff4b8;border-radius:16px;padding:10px 14px;font-weight:800}
+.gate{max-width:360px;margin:18vh auto 0;padding:22px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.gate .opts{display:flex;gap:12px}
+.gate .opts .candy{width:70px;height:60px;font-size:26px;padding:0}
+.drop{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.preview{display:flex;flex-direction:column;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 0 var(--paper-e)}
+.checker{background:repeating-conic-gradient(#eee4d6 0 25%,#fff 0 50%) 0 0/22px 22px;border-radius:14px;padding:10px;display:grid;place-items:center;max-width:100%}
+.checker canvas,.checker img{max-width:100%;max-height:260px;display:block}
+.kind{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.kind .candy.on{outline:4px solid var(--ink);outline-offset:2px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}
+.drop .candy{padding:9px 20px 5px;font-size:19px}
+#drawSave{padding:10px 36px 6px;font-size:22px}
+.gal{position:relative;background:#fff;border-radius:16px;padding:8px;aspect-ratio:1;display:grid;place-items:center;box-shadow:0 4px 0 var(--paper-e)}
+.gal img{max-width:100%;max-height:100%}
+.gal .badge{position:absolute;left:6px;bottom:6px;font-size:13px;padding:3px 10px 1px}
+.gal .del{position:absolute;right:-6px;top:-6px;width:32px;height:32px;padding:0;font-size:15px}
 @keyframes bob{50%{transform:translateY(-8px)}}
 @media (prefers-reduced-motion:reduce){#play,#want,#tip,.rays,.item.can{animation:none}}
 </style>
@@ -217,6 +254,7 @@ button:focus-visible{outline:5px dashed var(--gold);outline-offset:5px;border-ra
       <div class="ribbon lil">Ice Cream!</div>
       <p id="startDay">Day 1 · Count the money</p>
       <span class="card bankline lil" id="startBank"><span class="coin">$</span>Savings $0</span>
+      <div class="minirow"><button class="candy white small drawBtn">🖍️ My drawings</button><button class="candy white small parentBtn">👪 Grown-ups</button></div>
       <button id="play" class="candy" aria-label="Play"><svg viewBox="0 0 100 100"><path d="M18 8 L92 50 L18 92 Z" fill="#5a3b00" stroke="#5a3b00" stroke-width="12" stroke-linejoin="round"/></svg></button>
     </div>
   </div>
@@ -232,9 +270,38 @@ button:focus-visible{outline:5px dashed var(--gold);outline-offset:5px;border-ra
       <div class="card"><h3>Spend it on my truck</h3><div class="sub" id="bankNow"></div><div class="items" id="items"></div></div>
     </div>
     <div class="btns"><button class="candy white" id="again">Play again</button><button class="candy" id="next">Next day ▶</button></div>
+    <div class="minirow"><button class="candy white small drawBtn">🖍️ Add a drawing</button><button class="candy white small parentBtn">👪 Grown-ups</button></div>
   </div>
 </div>
 
+<div id="gate" class="panel" hidden>
+  <div class="card gate">
+    <h3>For grown-ups</h3>
+    <p id="gateQ">What is 3 + 4?</p>
+    <div class="opts" id="gateOpts"></div>
+    <button class="candy white small" id="gateNo">Back</button>
+  </div>
+</div>
+<div id="parents" class="panel" hidden>
+  <div class="card sheet">
+    <h2>How is my child doing? <button class="candy white x" id="parentsX" aria-label="Close">✕</button></h2>
+    <div id="parentsBody"></div>
+    <button class="candy white small" id="statsReset">Clear results</button>
+  </div>
+</div>
+<div id="draw" class="panel" hidden>
+  <div class="card sheet">
+    <h2>My drawings <button class="candy white x" id="drawX" aria-label="Close">✕</button></h2>
+    <p>Take a photo of a drawing on plain paper. A person or animal can visit the truck as a customer. Anything else can be a sticker on the truck.</p>
+    <div class="drop"><label class="candy" for="drawFile">📷 Add a drawing</label><input type="file" id="drawFile" accept="image/*" hidden><span class="sub" id="drawCount"></span></div>
+    <div class="preview" id="drawPreview" hidden>
+      <div class="checker" id="drawCanvas"></div>
+      <div class="kind"><button class="candy white small" id="rot">↻ Turn</button><button class="candy white small on" data-kind="kid">🧒 Customer</button><button class="candy white small" data-kind="sticker">🚚 Truck sticker</button></div>
+      <button class="candy mint" id="drawSave">Save ✓</button>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</div>
 <script>console.warn('Scripts "build/three.js" and "build/three.min.js" are deprecated with r150+, and will be removed with r160. Please use ES Modules or alternatives: https://threejs.org/docs/index.html#manual/en/introduction/Installation'),
 /**
  * @license
@@ -612,6 +679,7 @@ function makeKid(n) {
   return k;
 }
 function animKid(k, dt, t) {
+  if (k.paper) return animPaper(k, dt, t);
   k.walkAmt = (k.walkAmt || 0) + ((k.walking ? 1 : 0) - (k.walkAmt || 0)) * Math.min(1, dt * 7);
   const w = k.walkAmt, id = k.id || 0;
   k.phase += dt * 9.5 * w;
@@ -759,23 +827,17 @@ const sfx = {
 };
 function engineStart() {
   const a = audio(); if (!a || engineNode) return;
-  // Phone speakers play almost nothing below ~200 Hz, so the engine lives higher up:
-  // a buzzy body, a brighter layer an octave up, and a "putt-putt" beat that speeds up with the truck.
-  const o = a.createOscillator(), o2 = a.createOscillator(), f = a.createBiquadFilter(), v = a.createGain(), trem = a.createGain(), lfo = a.createOscillator(), depth = a.createGain(), g2 = a.createGain();
-  o.type = 'sawtooth'; o.frequency.value = 90; o2.type = 'square'; o2.frequency.value = 180; g2.gain.value = .35;
-  f.type = 'lowpass'; f.frequency.value = 900; f.Q.value = 3;
-  lfo.frequency.value = 8; depth.gain.value = .45; trem.gain.value = .55;
-  lfo.connect(depth).connect(trem.gain);
-  o.connect(f); o2.connect(g2).connect(f); f.connect(trem).connect(v).connect(a.destination);
-  v.gain.value = 0; o.start(); o2.start(); lfo.start();
-  engineNode = { o, o2, f, v, lfo };
+  // The low hum the King chose (40-90 Hz). A phone speaker cannot play that note itself, so the filter
+  // stays open enough to pass its overtones: the ear rebuilds the low pitch from them.
+  const o = a.createOscillator(), f = a.createBiquadFilter(), v = a.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 42; f.type = 'lowpass'; f.frequency.value = 700; f.Q.value = 1.2; v.gain.value = 0;
+  o.connect(f).connect(v).connect(a.destination); o.start(); engineNode = { o, f, v };
 }
 function engineSet(speed) {
   if (!engineNode || !ac) return;
   const t = ac.currentTime, s = Math.min(1, Math.abs(speed) / 7), n = engineNode;
-  n.o.frequency.setTargetAtTime(90 + s * 110, t, .12); n.o2.frequency.setTargetAtTime(180 + s * 220, t, .12);
-  n.lfo.frequency.setTargetAtTime(8 + s * 16, t, .12); n.f.frequency.setTargetAtTime(900 + s * 1600, t, .12);
-  n.v.gain.setTargetAtTime(muted ? 0 : .1 + s * .14, t, .1);
+  n.o.frequency.setTargetAtTime(40 + s * 48, t, .12); n.f.frequency.setTargetAtTime(700 + s * 600, t, .12);
+  n.v.gain.setTargetAtTime(muted ? 0 : .07 + s * .09, t, .1);
 }
 
 // English voice. Without one, the Listen level falls back to showing the words.
@@ -875,8 +937,11 @@ let nextId = 0;
 function spawnStop(x) {
   const [a, b] = dy().queue, n = a + Math.floor(Math.random() * (b - a + 1));
   const st = { x, queue: [], state: 'wait', called: false };
+  const used = new Set();
   for (let i = 0; i < n; i++) {
-    const k = makeKid(nextId), c = { k, vi: nextId % 2, st, state: 'wait' }; nextId++;
+    // the child's own drawn customers turn up often, and almost always at the first stops
+    const dr = Math.random() < (stops.length === 0 ? 1 : stops.length === 1 ? .6 : .4) ? pickDrawnKid(used) : null; if (dr) used.add(dr.id);
+    const k = dr ? makePaperKid(dr, nextId) : makeKid(nextId), c = { k, vi: nextId % 2, st, state: 'wait' }; nextId++;
     k.g.position.set(x + i * 1.05, .18, 3.35 + (i % 2) * .3); k.g.rotation.y = .6;
     st.queue.push(c); custs.push(c);
   }
@@ -1224,7 +1289,8 @@ async function runStop(st) {
 function serveOne(c) {
   return new Promise(done => {
     S.cust = c; S.done = done; S.mode = 'serve';
-    makeOrder(); buildTubs(); drawOrder(false);
+    makeOrder(); statOrderStart(); buildTubs(); drawOrder(false);
+    if (c.k.paper) { c.k.head.getWorldPosition(tmp); floatAt(tmp.clone(), '✨', 5); }
     bubble.classList.add('show'); placeBubble(); sfx.pop();
     lastLine = orderLine(); lastKey = `order:${c.vi}:${S.groups.map(([f, n]) => f + n).join('+')}`; speak(lastKey, lastLine);
     $('#tubs').classList.remove('away');
@@ -1252,9 +1318,9 @@ async function tap(f, btn) {
     sfx.plop();
     await tween(650, (e, t) => { const s = Math.sin(t * Math.PI * 5) * Math.exp(-t * 5) * .32; sc.scale.set(1 + s, 1 - s, 1 + s); }, ease.lin);
     S.need[f]--; S.built++; S.scoops.push(sc); drawOrder(false); S.flying = false;
-    if (Object.values(S.need).every(n => n === 0)) pay(S.cust);
+    if (Object.values(S.need).every(n => n === 0)) { statOrderDone(); pay(S.cust); }
   } else {
-    sfx.boing(); S.mistakes++;
+    sfx.boing(); S.mistakes++; statWrongTap(f);
     const want = Object.keys(S.need).find(x => S.need[x] > 0), vi = S.cust.vi;
     setTimeout(async () => { await speak(`oops:${vi}:${f}`, `Oops! That's ${FL[f].name}.`); speak(`want:${vi}:${want}`, `I want ${FL[want].name}!`); }, 250);
     const r0 = k.g.rotation.y; tween(420, (e, t) => k.g.rotation.y = r0 + Math.sin(t * Math.PI * 3) * .25, ease.lin);
@@ -1289,7 +1355,7 @@ async function pay(c) {
   const flights = Array.from({ length: price }, (_, i) => flyCoin(from, to, 1, i * 90));
   till.classList.add('away');
   await Promise.all(flights);
-  S.money += price; S.bank += price; S.happy++; S.served++;
+  S.money += price; S.bank += price; S.happy++; S.served++; stats.sold++; saveStats();
   store.set('bank', S.bank);
   drawHud(); $('#hud').classList.remove('bump'); void $('#hud').offsetWidth; $('#hud').classList.add('bump');
   floatAt({ x: to.x + 40, y: to.y + 70 }, `+$${price}`, 1, 'money');
@@ -1325,8 +1391,9 @@ function tillChange(price, c) {
       const n = count(); screen.textContent = 'Change $' + n; if (n) speak(`count:${n}`, dollars(n));
     }));
     $('#give').addEventListener('click', async () => {
-      if (count() === need) { screen.classList.add('ok'); coins.filter(b => b.classList.contains('give')).forEach((b, i) => flyCoin(center(b), center(bubble), 1, i * 80)); await sleep(600); return done(); }
-      tries++; S.mistakes++; sfx.boing(); till.classList.remove('shake'); void till.offsetWidth; till.classList.add('shake');
+      stats.change.tries++;
+      if (count() === need) { saveStats(); screen.classList.add('ok'); coins.filter(b => b.classList.contains('give')).forEach((b, i) => flyCoin(center(b), center(bubble), 1, i * 80)); await sleep(600); return done(); }
+      tries++; S.mistakes++; stats.change.wrong++; saveStats(); sfx.boing(); till.classList.remove('shake'); void till.offsetWidth; till.classList.add('shake');
       coins.forEach(b => b.classList.remove('give')); screen.textContent = 'Change $0';
       await speak(`wrongchange:${c.vi}`, "Hmm, that's not right.");
       speak(`need:${need}`, `Give back ${dollars(need)}.`);
@@ -1350,6 +1417,246 @@ async function thanks(c) {
   S.cust = null;
   await sleep(300);
 }
+
+// ---------- what the child gets right and wrong, for the grown-ups screen ----------
+const stats = Object.assign({ words: {}, nums: {}, change: { tries: 0, wrong: 0 }, orders: 0, orderMs: 0, days: 0, sold: 0 }, store.get('stats', {}));
+const slot = (bag, k) => bag[k] || (bag[k] = { asked: 0, first: 0, missed: 0, mix: {} });
+const saveStats = () => store.set('stats', stats);
+function statOrderStart() {
+  S.orderStart = performance.now(); S.orderMiss = new Set();
+  S.groups.forEach(([f, c]) => { slot(stats.words, f).asked++; slot(stats.nums, c).asked++; });
+}
+// A wrong tap is either the wrong flavour, or one scoop too many of a right one (a counting slip).
+function statWrongTap(f) {
+  const g = S.groups.find(([x]) => x === f);
+  if (g) { if (!S.orderMiss.has('n' + g[1])) slot(stats.nums, g[1]).missed++; S.orderMiss.add('n' + g[1]); return; }
+  const want = Object.keys(S.need).find(x => S.need[x] > 0), w = slot(stats.words, want);
+  if (!S.orderMiss.has(want)) w.missed++;
+  w.mix[f] = (w.mix[f] || 0) + 1; S.orderMiss.add(want);
+}
+function statOrderDone() {
+  S.groups.forEach(([f, c]) => { if (!S.orderMiss.has(f)) slot(stats.words, f).first++; if (!S.orderMiss.has('n' + c)) slot(stats.nums, c).first++; });
+  stats.orders++; stats.orderMs += performance.now() - S.orderStart; saveStats();
+}
+function drawParents() {
+  const pct = s => s.asked ? Math.round(100 * Math.min(s.first, s.asked) / s.asked) : 0;
+  const bar = (label, s, note = '') => { const p = pct(s); return `<div class="prow"><span>${label}</span><span class="pbar"><i class="${p < 60 ? 'low' : p < 85 ? 'mid' : ''}" style="width:${Math.max(4, p)}%"></i></span><span class="pn">${p}%</span>${note ? `<span class="pnote">${note}</span>` : ''}</div>`; };
+  if (!stats.orders) { $('#parentsBody').innerHTML = '<p>Nothing yet. Results appear here after your child serves a few customers.</p>'; return; }
+  const words = KEYS.filter(f => stats.words[f] && stats.words[f].asked).map(f => {
+    const s = stats.words[f], mix = Object.entries(s.mix).sort((a, b) => b[1] - a[1])[0];
+    return { f, s, p: pct(s), html: bar(`${FL[f].emoji} ${FL[f].name}`, s, mix && mix[1] >= 2 ? `often picks ${FL[mix[0]].name} instead` : `${s.first} of ${s.asked} right first time`) };
+  });
+  const nums = [1, 2, 3].filter(n => stats.nums[n] && stats.nums[n].asked).map(n => ({ w: NUM[n], s: stats.nums[n], p: pct(stats.nums[n]), html: bar(`${n} · ${NUM[n]}`, stats.nums[n], `${stats.nums[n].first} of ${stats.nums[n].asked} right first time`) }));
+  const weak = [...words.map(w => ({ n: FL[w.f].name, p: w.p, a: w.s.asked })), ...nums.map(x => ({ n: x.w, p: x.p, a: x.s.asked }))].filter(x => x.a >= 3 && x.p < 85).sort((a, b) => a.p - b.p).slice(0, 3);
+  // too few tries to judge, but already wrong more often than right
+  const early = [...words.map(w => ({ n: FL[w.f].name, p: w.p })), ...nums.map(x => ({ n: x.w, p: x.p }))].filter(x => x.p < 60).map(x => x.n).slice(0, 3);
+  const ch = stats.change;
+  $('#parentsBody').innerHTML = `
+    <div class="sumrow"><div class="sum"><b>${stats.days}</b><span>days finished</span></div><div class="sum"><b>${stats.sold}</b><span>ice creams sold</span></div>
+      <div class="sum"><b>${Math.round(stats.orderMs / stats.orders / 1000)}s</b><span>per order, on average</span></div></div>
+    <div class="practise">${weak.length ? `Worth practising: ${weak.map(x => x.n).join(', ')}` : early.length ? `Early signs, watch: ${early.join(', ')}` : [...words, ...nums].some(x => x.s.asked >= 3) ? 'Everything is going well. 🌟' : 'Play a few more orders for a clearer picture.'}</div>
+    <h3>Flavour words · right first time</h3>${words.map(w => w.html).join('')}
+    ${nums.length ? `<h3>Numbers · right amount of scoops</h3>${nums.map(x => x.html).join('')}` : ''}
+    ${ch.tries ? `<h3>Giving change (Day 3)</h3>${bar('💵 change', { asked: ch.tries, first: ch.tries - ch.wrong }, `${ch.tries - ch.wrong} of ${ch.tries} tries right`)}` : ''}`;
+}
+// A small sum keeps a young child out; a grown-up answers it at a glance.
+function openGate(then) {
+  const a = 3 + Math.floor(Math.random() * 5), b = 2 + Math.floor(Math.random() * 6), right = a + b;
+  const opts = [right, right + 1 + Math.floor(Math.random() * 3), right - 1 - Math.floor(Math.random() * 3)].sort(() => Math.random() - .5);
+  $('#gateQ').textContent = `What is ${a} + ${b}?`;
+  $('#gateOpts').innerHTML = opts.map(o => `<button class="candy" data-v="${o}">${o}</button>`).join('');
+  $('#gateOpts').querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { $('#gate').hidden = true; if (+btn.dataset.v === right) then(); }));
+  $('#gate').hidden = false;
+}
+$('#gateNo').addEventListener('click', () => $('#gate').hidden = true);
+document.querySelectorAll('.parentBtn').forEach(b => b.addEventListener('click', () => openGate(() => { drawParents(); $('#parents').hidden = false; })));
+$('#parentsX').addEventListener('click', () => $('#parents').hidden = true);
+let resetArmed = false;
+$('#statsReset').addEventListener('click', e => {
+  if (!resetArmed) { resetArmed = true; e.target.textContent = 'Tap again to clear everything'; setTimeout(() => { resetArmed = false; e.target.textContent = 'Clear results'; }, 3000); return; }
+  Object.assign(stats, { words: {}, nums: {}, change: { tries: 0, wrong: 0 }, orders: 0, orderMs: 0, days: 0, sold: 0 }); saveStats(); drawParents();
+  resetArmed = false; e.target.textContent = 'Clear results';
+});
+
+// ---------- the child's own drawings: photographed, cut out, brought into the street ----------
+let drawings = store.get('drawings', []);
+const MAX_DRAWINGS = 8;
+function solve(A, b) {                                       // tiny Gaussian elimination for the lighting fit
+  const n = b.length;
+  for (let i = 0; i < n; i++) {
+    let p = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[p][i])) p = r;
+    [A[i], A[p]] = [A[p], A[i]]; [b[i], b[p]] = [b[p], b[i]];
+    if (Math.abs(A[i][i]) < 1e-9) return null;
+    for (let r = i + 1; r < n; r++) { const k = A[r][i] / A[i][i]; for (let c = i; c < n; c++) A[r][c] -= k * A[i][c]; b[r] -= k * b[i]; }
+  }
+  const x = Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) { let s = b[i]; for (let c = i + 1; c < n; c++) s -= A[i][c] * x[c]; x[i] = s / A[i][i]; }
+  return x;
+}
+// Same method as art/cutout.py: flatten the photo's lighting, treat pale paper that reaches the edge
+// as background, keep the drawn shapes (and the white enclosed inside them), drop anything cut by the edge.
+function cutOut(img, rot) {
+  const sc = Math.min(1, 560 / Math.max(img.naturalWidth, img.naturalHeight));
+  const iw = Math.round(img.naturalWidth * sc), ih = Math.round(img.naturalHeight * sc);
+  const cv = document.createElement('canvas'), g = cv.getContext('2d', { willReadFrequently: true });
+  [cv.width, cv.height] = rot % 2 ? [ih, iw] : [iw, ih];
+  g.translate(cv.width / 2, cv.height / 2); g.rotate(rot * Math.PI / 2); g.drawImage(img, -iw / 2, -ih / 2, iw, ih); g.setTransform(1, 0, 0, 1, 0, 0);
+  const w = cv.width, h = cv.height, N = w * h, im = g.getImageData(0, 0, w, h), d = im.data;
+  const basis = (x, y) => { x /= w; y /= h; return [1, x, y, x * x, y * y, x * y]; };
+  const AtA = [0, 1, 2].map(() => Array.from({ length: 6 }, () => Array(6).fill(0))), Atb = [0, 1, 2].map(() => Array(6).fill(0));
+  let count = 0;
+  for (let i = 0; i < N; i += 7) {
+    const r = d[i * 4], gg = d[i * 4 + 1], bb = d[i * 4 + 2], mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb);
+    if (mx - mn > 34 || (r + gg + bb) / 3 < 110) continue;
+    const bs = basis(i % w, (i / w) | 0); count++;
+    for (let c = 0; c < 3; c++) for (let a = 0; a < 6; a++) { Atb[c][a] += bs[a] * d[i * 4 + c]; for (let e = 0; e < 6; e++) AtA[c][a][e] += bs[a] * bs[e]; }
+  }
+  const coef = count > N / 70 ? [0, 1, 2].map(c => solve(AtA[c], Atb[c])) : null;
+  if (coef && coef.every(Boolean)) for (let i = 0; i < N; i++) {
+    const bs = basis(i % w, (i / w) | 0);
+    for (let c = 0; c < 3; c++) { let bg = 0; for (let a = 0; a < 6; a++) bg += coef[c][a] * bs[a]; d[i * 4 + c] = Math.min(255, d[i * 4 + c] / Math.max(bg, 40) * 255); }
+  }
+  const pale = new Uint8Array(N);
+  for (let i = 0; i < N; i++) { const r = d[i * 4], gg = d[i * 4 + 1], bb = d[i * 4 + 2]; pale[i] = Math.max(r, gg, bb) - Math.min(r, gg, bb) < 32 && (r + gg + bb) / 3 > 178 ? 1 : 0; }
+  const bgm = new Uint8Array(N), q = new Int32Array(N); let qh = 0, qt = 0;
+  const seed = i => { if (pale[i] && !bgm[i]) { bgm[i] = 1; q[qt++] = i; } };
+  for (let x = 0; x < w; x++) { seed(x); seed(N - w + x); } for (let y = 0; y < h; y++) { seed(y * w); seed(y * w + w - 1); }
+  while (qh < qt) { const i = q[qh++], x = i % w; if (x > 0) seed(i - 1); if (x < w - 1) seed(i + 1); if (i >= w) seed(i - w); if (i < N - w) seed(i + w); }
+  // open by one pixel: thin lines (tile grout, paper creases) vanish, strokes survive
+  const ink = new Uint8Array(N), er = new Uint8Array(N);
+  for (let i = 0; i < N; i++) ink[i] = bgm[i] ? 0 : 1;
+  for (let i = w; i < N - w; i++) er[i] = ink[i] && ink[i - 1] && ink[i + 1] && ink[i - w] && ink[i + w] ? 1 : 0;
+  for (let i = w; i < N - w; i++) ink[i] = er[i] || er[i - 1] || er[i + 1] || er[i - w] || er[i + w] ? 1 : 0;
+  const lab = new Int32Array(N), comps = [];
+  for (let s = 0; s < N; s++) {
+    if (!ink[s] || lab[s]) continue;
+    const id = comps.length + 1; let n = 0, edge = false, x0 = w, y0 = h, x1 = 0, y1 = 0; qh = qt = 0; q[qt++] = s; lab[s] = id;
+    while (qh < qt) {
+      const i = q[qh++], x = i % w, y = (i / w) | 0; n++;
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) edge = true;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w]) if (j >= 0 && j < N && ink[j] && !lab[j]) { lab[j] = id; q[qt++] = j; }
+    }
+    comps.push({ id, n, edge, x0, y0, x1, y1 });
+  }
+  const inside = comps.filter(c => !c.edge).sort((a, b) => b.n - a.n);
+  if (!inside.length || inside[0].n < N * .004 || inside[0].n > N * .92) return null;
+  const keep = inside.filter(c => c.n >= inside[0].n * .06), ids = new Set(keep.map(c => c.id));
+  const X0 = Math.max(0, Math.min(...keep.map(c => c.x0)) - 4), Y0 = Math.max(0, Math.min(...keep.map(c => c.y0)) - 4);
+  const X1 = Math.min(w - 1, Math.max(...keep.map(c => c.x1)) + 4), Y1 = Math.min(h - 1, Math.max(...keep.map(c => c.y1)) + 4);
+  for (let i = 0; i < N; i++) {
+    let a = ids.has(lab[i]) ? 255 : 0;
+    if (!a) { const x = i % w; if ((x > 0 && ids.has(lab[i - 1])) || (x < w - 1 && ids.has(lab[i + 1])) || ids.has(lab[i - w]) || ids.has(lab[i + w])) a = 110; }
+    d[i * 4 + 3] = a;
+  }
+  g.putImageData(im, 0, 0);
+  const cw = X1 - X0 + 1, chh = Y1 - Y0 + 1, s2 = Math.min(1, 380 / Math.max(cw, chh));
+  const out = document.createElement('canvas'); out.width = Math.round(cw * s2); out.height = Math.round(chh * s2);
+  out.getContext('2d').drawImage(cv, X0, Y0, cw, chh, 0, 0, out.width, out.height);
+  return out;
+}
+// If nothing clean comes out, the whole photo becomes a framed picture instead: always something.
+function framed(img, rot) {
+  const sc = Math.min(1, 340 / Math.max(img.naturalWidth, img.naturalHeight)), iw = Math.round(img.naturalWidth * sc), ih = Math.round(img.naturalHeight * sc);
+  const [w, h] = rot % 2 ? [ih, iw] : [iw, ih], out = document.createElement('canvas'); out.width = w + 24; out.height = h + 24;
+  const g = out.getContext('2d'); g.fillStyle = '#fff'; g.beginPath(); g.roundRect(0, 0, w + 24, h + 24, 18); g.fill();
+  g.translate(out.width / 2, out.height / 2); g.rotate(rot * Math.PI / 2); g.drawImage(img, -iw / 2, -ih / 2, iw, ih);
+  return out;
+}
+let pending = null;   // { img, rot, kind, canvas }
+function renderPending() {
+  pending.canvas = cutOut(pending.img, pending.rot) || framed(pending.img, pending.rot);
+  $('#drawCanvas').innerHTML = ''; $('#drawCanvas').appendChild(pending.canvas);
+  document.querySelectorAll('#drawPreview [data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === pending.kind));
+  $('#drawPreview').hidden = false;
+}
+$('#drawFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  const img = new Image(), url = URL.createObjectURL(file); img.src = url;
+  try { await img.decode(); } catch (err) { URL.revokeObjectURL(url); $('#drawCount').textContent = 'That photo could not be opened. Try another one.'; return; }
+  pending = { img, url, rot: 0, kind: 'kid' }; renderPending();
+});
+$('#rot').addEventListener('click', () => { if (pending) { pending.rot = (pending.rot + 1) % 4; renderPending(); } });
+document.querySelectorAll('#drawPreview [data-kind]').forEach(b => b.addEventListener('click', () => { if (pending) { pending.kind = b.dataset.kind; renderPending(); } }));
+$('#drawSave').addEventListener('click', () => {
+  if (!pending) return;
+  const c = pending.canvas, dr = { id: Date.now().toString(36), kind: pending.kind, src: c.toDataURL('image/png'), w: c.width, h: c.height };
+  drawings = [dr, ...drawings].slice(0, MAX_DRAWINGS);
+  try { store.set('drawings', drawings); } catch (e) {}
+  URL.revokeObjectURL(pending.url); pending = null; $('#drawPreview').hidden = true;
+  sfx.yay(); drawGallery(); applyStickers();
+});
+function drawGallery() {
+  $('#drawCount').textContent = `${drawings.length} / ${MAX_DRAWINGS}`;
+  $('#gallery').innerHTML = drawings.map(dr => `<div class="gal"><img src="${dr.src}" alt="A drawing"><button class="candy white small badge" data-id="${dr.id}">${dr.kind === 'kid' ? '🧒 Customer' : '🚚 Sticker'}</button><button class="candy pink del" data-del="${dr.id}" aria-label="Remove">✕</button></div>`).join('');
+  $('#gallery').querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => { const dr = drawings.find(x => x.id === b.dataset.id); dr.kind = dr.kind === 'kid' ? 'sticker' : 'kid'; store.set('drawings', drawings); drawGallery(); applyStickers(); }));
+  $('#gallery').querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { drawings = drawings.filter(x => x.id !== b.dataset.del); store.set('drawings', drawings); drawGallery(); applyStickers(); }));
+}
+document.querySelectorAll('.drawBtn').forEach(b => b.addEventListener('click', () => { drawGallery(); $('#draw').hidden = false; }));
+$('#drawX').addEventListener('click', () => { $('#draw').hidden = true; if (pending) { URL.revokeObjectURL(pending.url); pending = null; $('#drawPreview').hidden = true; } });
+
+// A drawn customer is a paper cut-out that always turns to face you and bobs along as it walks.
+const paperTex = {};
+function makePaperKid(dr, n) {
+  const k = { id: n * 1.7, paper: true, g: new T.Group(), legs: [], arms: [], phase: 0, walking: false, jump: 0, blinkT: 9, eyes: [] };
+  // the same white die-cut edge as the stickers, so a thin pencil figure still reads as a paper cut-out
+  const pw = dr.w + 28, ph = dr.h + 28, H = 1.9, W = Math.min(1.9, H * pw / ph), tex = paperTex[dr.id] || (paperTex[dr.id] = stickerTexture(dr));
+  const holder = new T.Group(); k.g.add(holder); k.hip = holder;
+  const mat = new T.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: .5, side: T.DoubleSide, roughness: .85 });
+  const card = mesh(new T.PlaneGeometry(W, W * ph / pw), mat, holder, [0, W * ph / pw / 2 + .04, 0]);
+  card.customDepthMaterial = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, map: tex, alphaTest: .5 });
+  k.card = card; k.torso = card;
+  const top = W * ph / pw + .04, head = new T.Object3D(); head.position.y = top; holder.add(head); k.head = head;
+  const arm = new T.Object3D(); arm.position.set(-W * .42, top * .5, .08); holder.add(arm); arm.userData.hand = arm;
+  k.arms = [arm, new T.Object3D()];
+  const sh = mesh(new T.CircleGeometry(.4, 24), new T.MeshBasicMaterial({ color: 0x1b2230, transparent: true, opacity: .22, depthWrite: false }), k.g, [0, .01, 0], false);
+  sh.rotation.x = -Math.PI / 2; sh.material.alphaMap = tShadow.material.alphaMap;
+  world.add(k.g);
+  return k;
+}
+const camLocal = new T.Vector3();
+function animPaper(k, dt, t) {
+  k.walkAmt = (k.walkAmt || 0) + ((k.walking ? 1 : 0) - (k.walkAmt || 0)) * Math.min(1, dt * 7);
+  const w = k.walkAmt; k.phase += dt * 9.5 * w;
+  const hop = k.waving ? Math.max(0, Math.sin(t * 5 + k.id)) * .1 : 0;
+  k.hip.position.y = Math.abs(Math.sin(k.phase)) * .14 * w + k.jump + hop;
+  k.card.rotation.z = Math.sin(k.phase) * .13 * w + Math.sin(t * 1.3 + k.id) * .045;
+  camLocal.copy(cam.position); world.worldToLocal(camLocal);
+  k.hip.rotation.y = Math.atan2(camLocal.x - k.g.position.x, camLocal.z - k.g.position.z) - k.g.rotation.y;
+  const up = k.jump + hop; k.g.scale.set(1 - up * .2, 1 + up * .35, 1);
+}
+function pickDrawnKid(used) {
+  const kids = drawings.filter(d => d.kind === 'kid' && !used.has(d.id));
+  return kids.length ? kids[Math.floor(Math.random() * kids.length)] : null;
+}
+
+// Stickers go on the lower side of the truck, where nothing else is painted.
+// clear of the wheels (which stand proud of the body), the windows and the door handle
+const STICKER_SLOTS = [[-.8, 1.25, .52], [-.1, 1.12, .44], [-2.26, 1.02, .4]];
+let stickerMeshes = [];
+function stickerTexture(dr) {
+  // The canvas gets its final size up front: the GPU sizes the texture on first upload, and a canvas
+  // resized afterwards would stay blank.
+  const pad = 14, img = new Image(), cnv = document.createElement('canvas'); cnv.width = dr.w + pad * 2; cnv.height = dr.h + pad * 2; img.src = dr.src;
+  const tex = new T.CanvasTexture(cnv); tex.colorSpace = T.SRGBColorSpace;
+  img.decode().then(() => {
+    const c = tex.image;
+    const g = c.getContext('2d'), sil = document.createElement('canvas'); sil.width = img.width; sil.height = img.height;
+    const sg = sil.getContext('2d'); sg.drawImage(img, 0, 0); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = '#fff'; sg.fillRect(0, 0, sil.width, sil.height);
+    for (let a = 0; a < 16; a++) g.drawImage(sil, pad + Math.cos(a / 8 * Math.PI) * 9, pad + Math.sin(a / 8 * Math.PI) * 9);  // a white die-cut edge
+    g.drawImage(img, pad, pad); tex.needsUpdate = true;
+  }).catch(() => {});
+  return tex;
+}
+function applyStickers() {
+  stickerMeshes.forEach(m => m.removeFromParent()); stickerMeshes = [];
+  drawings.filter(d => d.kind === 'sticker').slice(0, STICKER_SLOTS.length).forEach((dr, i) => {
+    const [x, y, size] = STICKER_SLOTS[i], asp = dr.w / dr.h, sw = asp >= 1 ? size : size * asp, sh = asp >= 1 ? size / asp : size;
+    const m = mesh(new T.PlaneGeometry(sw, sh), new T.MeshPhysicalMaterial({ map: stickerTexture(dr), transparent: true, alphaTest: .3, roughness: .35, clearcoat: .6 }), body, [x, y, SIDE + .012 + i * .002], false);
+    stickerMeshes.push(m);
+  });
+}
+applyStickers();
 
 // ---------- end of the day ----------
 function dayWords() {
@@ -1386,6 +1693,7 @@ async function endDay() {
   popConfetti(truck.localToWorld(new T.Vector3(0, 4, 1)));
   tween(900, (e, k) => { truck.position.y = Math.abs(Math.sin(k * Math.PI * 3)) * .35 * (1 - k); }, ease.lin).then(() => truck.position.y = 0);
   await sleep(1300);
+  stats.days++; saveStats();
   const stars = S.mistakes <= 1 ? 3 : S.mistakes <= 4 ? 2 : 1;
   const words = dayWords(), fresh = words.filter(w => !S.learned.includes(w[1])).map(w => w[1]);
   S.learned = [...new Set([...S.learned, ...fresh])]; store.set('learned', S.learned);
